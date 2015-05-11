@@ -21,10 +21,14 @@ public class CommandList {
         commands.put("hello", this::hello);
         commands.put("pick", this::pick);
         commands.put("echo", this::echo);
+        commands.put("about", this::about);
         this.user = u.substring(1);
         this.owner = o;
         this.arguments = a;
 
+    }
+    public String about() {
+        return "BlizzyBotJava. Made in Java 8.";
     }
     public String hello() {
         return "Hello " + user;

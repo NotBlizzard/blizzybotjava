@@ -1,7 +1,11 @@
 package blizzybotjava;
 
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -9,8 +13,20 @@ import java.util.concurrent.ExecutionException;
  */
 public class Application {
     public static void main(String[] args) throws URISyntaxException, ExecutionException, InterruptedException {
-        String[] rooms = {"lobby"};
-        Bot c = new Bot("bot_name", "bot_password","server:8000","your_user_name", rooms);
-        c.Connect();
+        Properties prop = new Properties();
+        try {
+            InputStream input = new FileInputStream("config.properties");
+            prop.load(input);
+            System.out.println("USER IS "+prop.getProperty("username"));
+            String username = prop.getProperty("username");
+            String password = prop.getProperty("password");
+            String server = prop.getProperty("server");
+            String owner = prop.getProperty("owner");
+            String[] rooms = prop.getProperty("rooms").replace(" ", "").split(",");
+            Bot c = new Bot(username, password,server, owner, rooms);
+            c.Connect();
+        } catch (IOException e) {
+            System.out.println(e);
+        }
     }
 }

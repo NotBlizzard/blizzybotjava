@@ -62,7 +62,9 @@ public class Bot {
         CloseableHttpResponse response = httpclient.execute(httpPost);
         HttpEntity r = response.getEntity();
         String str = EntityUtils.toString(r);
-        return str;
+        String s = str.split("]")[1].split("\"assertion\":\"")[1];
+        System.out.println(s);
+        return s;
     }
 
     public void Connect() throws InterruptedException, ExecutionException {
