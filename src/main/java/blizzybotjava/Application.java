@@ -9,8 +9,8 @@ import java.util.concurrent.ExecutionException;
  */
 public class Application {
     public static void main(String[] args) throws URISyntaxException, ExecutionException, InterruptedException {
-        String[] rooms = {"rooms","go", "here"};
-        Bot c = new Bot("name", "password", "sim.smogon.com:8000", rooms);
+        String[] rooms = {"lobby"};
+        Bot c = new Bot("bot_name", "bot_password","server:8000","your_user_name", rooms);
         c.Connect();
     }
 }

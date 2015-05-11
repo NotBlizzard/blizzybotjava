@@ -29,16 +29,18 @@ public class Bot {
     private String name;
     private String server;
     private String passw;
+    private String owner;
     private String[] rooms;
     private WebSocket ws;
     private CloseableHttpClient httpclient = HttpClients.createDefault();
 
 
-    public Bot(String n, String p, String s, String[] r) {
+    public Bot(String n, String p, String s, String o, String[] r) {
         this.name = n;
         this.passw = p;
         this.server = "ws://" + s + "/showdown/websocket";
         this.rooms = r;
+        this.owner = o;
     }
 
     public String Get(String url) throws IOException {
@@ -64,7 +66,7 @@ public class Bot {
     }
 
     public void Connect() throws InterruptedException, ExecutionException {
-        WebSocket websocket = c.prepareGet(server).execute(new WebSocketUpgradeHandler.Builder().addWebSocketListener(new WebSocketTextListener() {
+        WebSocket websocket = c.prepareGet(this.server).execute(new WebSocketUpgradeHandler.Builder().addWebSocketListener(new WebSocketTextListener() {
 
             @Override
             public void onOpen(WebSocket w) {
@@ -74,43 +76,76 @@ public class Bot {
 
             @Override
             public void onMessage(String message) {
+                message = message.replace(">","").replace("\n","");
                 System.out.println(message);
                 String[] messages = message.split("\\|");
-                switch (messages[1]) {
-                    case "challstr":
-                        String key = messages[2];
-                        String challenge = messages[3];
-                        if (passw.equals("")) {
-                            String get_url = url + "?act=getassertion&userid=" + name + "&challengekeyid=" + key + "&challenge=" + challenge;
-                            try {
-                                Get(get_url);
-                                Bot.this.ws.sendMessage("|/trn " + name + ",0," + Get(get_url));
-                            } catch (IOException ie) {
-                                System.out.println(ie);
-                            }
-                        } else {
-                            try {
-                                Bot.this.ws.sendMessage("|/trn " + name + ",0," + GetAssertion(url, name, passw, key, challenge));
-                            } catch (IOException ie) {
-                                System.out.println(ie);
-                            }
+                try {
+                    switch (messages[1]) {
 
-                        }
-                        for (String room : rooms) {
-                            Bot.this.ws.sendMessage("|/join " + room);
-                            System.out.println("ok");
-                        }
-                        break;
+                        case "c:":
+                            //Room.
+                            String r = messages[0];
+                            String msg = messages[4];
+                            String user = messages[3];
+                            if (msg.startsWith("$")) {
+                                String command = msg.split("\\$")[1].split(" ")[0];
+                                String arguments;
+                                try {
+                                    arguments = msg.split(command + " ")[1];
+                                } catch (ArrayIndexOutOfBoundsException e) {
+                                    arguments = "";
+                                }
+                                CommandList commands = new CommandList(user, arguments, Bot.this.owner);
+                                if (commands.commands.containsKey(command.toLowerCase())) {
+                                    try {
+                                        Bot.this.ws.sendMessage(r + "|" + commands.commands.get(command).call());
+                                    } catch (Exception e) {
+                                        System.out.println(e);
+                                    }
+                                }
+                            }
+                            break;
+
+                        case "challstr":
+                            String key = messages[2];
+                            String challenge = messages[3];
+                            if (passw.equals("")) {
+                                String get_url = url + "?act=getassertion&userid=" + name + "&challengekeyid=" + key + "&challenge=" + challenge;
+                                try {
+                                    Get(get_url);
+                                    Bot.this.ws.sendMessage("|/trn " + name + ",0," + Get(get_url));
+                                } catch (IOException ie) {
+                                    System.out.println(ie);
+                                }
+                            } else {
+                                try {
+                                    Bot.this.ws.sendMessage("|/trn " + name + ",0," + GetAssertion(url, name, passw, key, challenge));
+                                } catch (IOException ie) {
+                                    System.out.println(ie);
+                                }
+
+                            }
+                            for (String room : rooms) {
+                                Bot.this.ws.sendMessage("|/join " + room);
+                                System.out.println("ok");
+                            }
+                            break;
+                        default:
+                            System.out.println("");
+                            break;
+                    }
+                } catch (Exception e) {
+                    System.out.println(e);
                 }
             }
-
 
             public void onClose(WebSocket webSocket) {
                 Bot.this.ws.sendMessage("|/logout");
             }
 
             public void onError(Throwable throwable) {
+                System.out.println(throwable);
             }
         }).build()).get();
-    }
+    };
 }
