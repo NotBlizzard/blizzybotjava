@@ -17,6 +17,8 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -25,7 +27,6 @@ import java.util.concurrent.ExecutionException;
 public class Bot {
     final String url = "http://play.pokemonshowdown.com/action.php";
     AsyncHttpClient c = new AsyncHttpClient();
-
     private String name;
     private String server;
     private String passw;
@@ -78,12 +79,11 @@ public class Bot {
 
             @Override
             public void onMessage(String message) {
-                message = message.replace(">","").replace("\n","");
+                message = message.replaceAll("^>","").replace("\n","");
                 System.out.println(message);
                 String[] messages = message.split("\\|");
                 try {
                     switch (messages[1]) {
-
                         case "c:":
                             //Room.
                             String r = messages[0];
@@ -132,6 +132,12 @@ public class Bot {
                                 System.out.println("ok");
                             }
                             break;
+                        case "updateuser":
+                            for (String room : rooms) {
+                                Bot.this.ws.sendMessage("|/join " + room);
+                                System.out.println("ok");
+                            }
+                            break;
                         default:
                             System.out.println("");
                             break;
@@ -141,13 +147,25 @@ public class Bot {
                 }
             }
 
+            @Override
             public void onClose(WebSocket webSocket) {
                 Bot.this.ws.sendMessage("|/logout");
             }
 
+            @Override
             public void onError(Throwable throwable) {
                 System.out.println(throwable);
             }
         }).build()).get();
+        Timer t = new Timer();
+        t.scheduleAtFixedRate(new PingServer(), 0, 10000);
+
     };
+    class PingServer extends TimerTask {
+        @Override
+        public void run() {
+            Bot.this.ws.sendPing("Hello".getBytes());
+        }
+    }
 }
+

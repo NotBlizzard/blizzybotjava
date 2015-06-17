@@ -23,7 +23,7 @@ public class Application {
             String server = prop.getProperty("server");
             String owner = prop.getProperty("owner");
             String[] rooms = prop.getProperty("rooms").replace(" ", "").split(",");
-            Bot c = new Bot(username, password,server, owner, rooms);
+            Bot c = new Bot(username, "",server, owner, rooms);
             c.Connect();
         } catch (IOException e) {
             System.out.println(e);
