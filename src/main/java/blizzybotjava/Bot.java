@@ -64,8 +64,27 @@ public class Bot {
         HttpEntity r = response.getEntity();
         String str = EntityUtils.toString(r);
         String s = str.split("]")[1].split("\"assertion\":\"")[1];
-        System.out.println(s);
+        System.out.println("Assertion is "+s);
         return s;
+    }
+
+    public void LogIn(String key, String challenge) {
+        if (this.passw.equals("")) {
+            String get_url = url + "?act=getassertion&userid=" + this.name + "&challengekeyid=" + key + "&challenge=" + challenge;
+            try {
+                Get(get_url);
+                Bot.this.ws.sendMessage("|/trn " + this.name + ",0," + Get(get_url));
+            } catch (IOException ie) {
+                System.out.println(ie);
+            }
+        } else {
+            try {
+                Bot.this.ws.sendMessage("|/trn " + this.name + ",0," + GetAssertion(url, this.name, this.passw, key, challenge));
+            } catch (IOException ie) {
+                System.out.println(ie);
+            }
+
+        }
     }
 
     public void Connect() throws InterruptedException, ExecutionException {
@@ -111,26 +130,7 @@ public class Bot {
                         case "challstr":
                             String key = messages[2];
                             String challenge = messages[3];
-                            if (passw.equals("")) {
-                                String get_url = url + "?act=getassertion&userid=" + name + "&challengekeyid=" + key + "&challenge=" + challenge;
-                                try {
-                                    Get(get_url);
-                                    Bot.this.ws.sendMessage("|/trn " + name + ",0," + Get(get_url));
-                                } catch (IOException ie) {
-                                    System.out.println(ie);
-                                }
-                            } else {
-                                try {
-                                    Bot.this.ws.sendMessage("|/trn " + name + ",0," + GetAssertion(url, name, passw, key, challenge));
-                                } catch (IOException ie) {
-                                    System.out.println(ie);
-                                }
-
-                            }
-                            for (String room : rooms) {
-                                Bot.this.ws.sendMessage("|/join " + room);
-                                System.out.println("ok");
-                            }
+                            Bot.this.LogIn(key, challenge);
                             break;
                         case "updateuser":
                             for (String room : rooms) {

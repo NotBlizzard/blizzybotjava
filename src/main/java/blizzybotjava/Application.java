@@ -17,13 +17,12 @@ public class Application {
         try {
             InputStream input = new FileInputStream("config.properties");
             prop.load(input);
-            System.out.println("USER IS "+prop.getProperty("username"));
             String username = prop.getProperty("username");
             String password = prop.getProperty("password");
             String server = prop.getProperty("server");
             String owner = prop.getProperty("owner");
             String[] rooms = prop.getProperty("rooms").replace(" ", "").split(",");
-            Bot c = new Bot(username, "",server, owner, rooms);
+            Bot c = new Bot(username, password,server, owner, rooms);
             c.Connect();
         } catch (IOException e) {
             System.out.println(e);
